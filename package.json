@@ -7,7 +7,7 @@
     "start": "node src/app.js",
     "lint": "eslint src config test",
     "test": "mocha test/*.test.js",
-    "postinstall": "cd ui && npm install && cd .."
+    "postinstall": "node set-env.js && cd ui && npm install && cd .."
   },
   "author": "TCSCODER",
   "license": "none",
@@ -38,5 +38,6 @@
   "engines": {
     "node": "8.x",
     "npm": "5.x"
-  }
+  },
+  "private": true
 }
