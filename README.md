@@ -2,27 +2,30 @@
 
 
 ## Dependencies
+
 - nodejs https://nodejs.org/en/ (v8+)
+
 
 
 ## Configuration
 Configuration for the notification server is at `config/default.js`.
 The following parameters can be set in config files or in env variables:
+
 - LOG_LEVEL: the log level
 - PORT: the server port
 - KAFKA_OPTIONS: Kafka consumer options, see https://www.npmjs.com/package/no-kafka for available options
 
 For the Kafka connection options:
+
 - connectionString is comma delimited list of initial brokers list
 - secure connection may be achieved via ssl field, see https://www.npmjs.com/package/no-kafka#ssl for details
-
 
 ## Local Kafka setup
 
 - `http://kafka.apache.org/quickstart` contains details to setup and manage Kafka server,
   below provides details to setup Kafka server in Mac, Windows will use bat commands in bin/windows instead
 - download kafka at `https://www.apache.org/dyn/closer.cgi?path=/kafka/1.1.0/kafka_2.11-1.1.0.tgz`
-- extract out the doanlowded tgz file
+- extract out the downloaded tgz file
 - go to extracted directory kafka_2.11-0.11.0.1
 - start ZooKeeper server:
   `bin/zookeeper-server-start.sh config/zookeeper.properties`
@@ -43,7 +46,6 @@ For the Kafka connection options:
 - use another terminal, go to same directory, start a consumer to view the messages:
   `bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic challenge.notification.create --from-beginning`
 
-
 ## Front end UI setup
 
 - the front end UI's build folder content are exposed as public content by the app, so you may directly access it
@@ -52,16 +54,16 @@ For the Kafka connection options:
   run `npm install`, `npm start`, then access `http://localhost:3000`
 - note that if the front end UI's config is changed, it must be re-built using `npm run build` in the ui folder
 
-
 ## Local deployment
+
 - setup Kafka as above
 - install dependencies `npm i`
 - run code lint check `npm run lint`
 - run test `npm run test`
 - start app `npm start`, the app is running at `http://localhost:4000`
 
-
 ## Heroku Deployment
+
 - git init
 - git add .
 - git commit -m message
@@ -69,8 +71,6 @@ For the Kafka connection options:
 - heroku config:set KAFKA_CONSUMER_URL=some-public-kafka-url
 - heroku config:set KAFKA_PRODUCER_URL=some-public-kafka-url
 - git push heroku master
-
-
 
 ## Verification
 
@@ -81,4 +81,3 @@ For the Kafka connection options:
 - filter the messages and see results
 - use the UI to post message to Kafka, see above for example message, the data stream table should also show the posted message
 - you may also use the above kafka-console-consumer to view the Kafka messages
-
