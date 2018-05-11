@@ -1,6 +1,5 @@
 # Topcoder Data Stream User Interface
 
-
 ## Dependencies
 
 - nodejs https://nodejs.org/en/ (v8+)
