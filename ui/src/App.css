@@ -1,47 +1,103 @@
-.App {
-  text-align: center;
+.app {
+  width: 100%;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
+.left-nav {
+  width: 300px;
+  background-color: #444444;
+  color: #EEEEEE;
+  font-size: 13px;
+}
+
+.logo {
   height: 80px;
+  width: 100%;
+  padding-left: 60px;
+  padding-right: 60px;
+  padding-top: 22px;
+  padding-bottom: 22px;
+  background-color: #333333;
 }
 
-.App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
-}
-
-.App-title {
-  font-size: 1.5em;
-}
-
-.App-item {
-  font-size: large;
-  margin: 10px;
+.left-nav-item {
+  padding-left: 30px;
+  margin-top: 30px;
+  margin-bottom: 20px;
 }
 
 .topic-select {
-  width: 50%;
+  width: 65%;
   display: inline-block;
-  margin: 10px;
-}
-
-.label {
-  width: 150px;
-  display: inline-block;
-  margin-left: 30px;
   margin-right: 10px;
 }
 
 .filter {
-  width: 250px;
-  display: inline-block;
+  padding-left: 0px;
+  text-align: center;
+  font-style: italic;
 }
 
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.filter-control {
+  width: 90%;
+}
+
+.timestamp-control {
+  color: #000000;
+}
+
+.apply-button {
+  margin-left: 30px;
+}
+
+.main-content {
+  background-color: #F5F5F5;
+  padding: 20px;
+  width: calc(100% - 300px);
+}
+
+.error-msg {
+  color: red;
+  margin-bottom: 30px;
+}
+
+.message-input {
+  width: 75%;
+  margin-right: 20px;
+  display: inline;
+}
+
+.extra-message-count {
+  width: 100px;
+  display: inline;
+}
+
+.view-button {
+  vertical-align: top;
+}
+
+.get-button {
+  vertical-align: top;
+  margin-left: 10px;
+}
+
+.send-message-button {
+  vertical-align: text-bottom;
+}
+
+.loading-img-container {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+  opacity: 0.2;
+}
+
+.loading-img {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 99999;
 }

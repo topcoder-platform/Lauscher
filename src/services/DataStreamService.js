@@ -38,11 +38,13 @@ function* getAllTopics() {
       topics.push(tp);
       // if the topic was not handled yet, then let the consumer handle the topic
       if (!consumers[tp]) {
-        consumer.subscribe(tp, { time: Kafka.LATEST_OFFSET }, dataHandler);
+        consumer.subscribe(tp, { time: Kafka.EARLIEST_OFFSET }, dataHandler);
         consumers[tp] = consumer;
       }
     }
   });
+  // sort topics
+  topics.sort();
   return topics;
 }
 

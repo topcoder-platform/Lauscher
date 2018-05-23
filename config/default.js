@@ -12,4 +12,6 @@ module.exports = {
       key: process.env.KAFKA_CLIENT_CERT_KEY,
     },
   },
+  // max message count to cache per topic
+  MAX_MESSAGE_COUNT: process.env.MAX_MESSAGE_COUNT || 10000,
 };

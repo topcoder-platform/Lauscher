@@ -3,7 +3,7 @@
 ## Dependencies
 
 - nodejs https://nodejs.org/en/ (v8+)
-
+- Kafka v2.11+
 
 
 ## Configuration
@@ -13,11 +13,15 @@ The following parameters can be set in config files or in env variables:
 - LOG_LEVEL: the log level
 - PORT: the server port
 - KAFKA_OPTIONS: Kafka consumer options, see https://www.npmjs.com/package/no-kafka for available options
+- MAX_MESSAGE_COUNT: max message count to cache per topic
 
 For the Kafka connection options:
 
 - connectionString is comma delimited list of initial brokers list
 - secure connection may be achieved via ssl field, see https://www.npmjs.com/package/no-kafka#ssl for details
+
+For front end config, see ui/README.md.
+
 
 ## Local Kafka setup
 
@@ -33,6 +37,10 @@ For the Kafka connection options:
 - note that the zookeeper server is at localhost:2181, and Kafka server is at localhost:9092
 - use another terminal, go to same directory, create a topic:
   `bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic challenge.notification.create`
+  similarly, you may create more topics, e.g.
+  `bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic1`
+  `bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic2`
+  `bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic3`
 - verify that the topic is created:
   `bin/kafka-topics.sh --list --zookeeper localhost:2181`,
   it should list out the created topics
@@ -63,12 +71,14 @@ For the Kafka connection options:
 
 ## Heroku Deployment
 
+- heroku login
+- heroku create
+- heroku config:set KAFKA_URL=some-public-kafka-url
+- heroku config:set API_URL=API-URL-according-to-the-heroku-app-URL
+- heroku config:set WS_URL=web-socket-URL-according-to-the-heroku-app-URL
 - git init
 - git add .
 - git commit -m message
-- heroku create
-- heroku config:set KAFKA_CONSUMER_URL=some-public-kafka-url
-- heroku config:set KAFKA_PRODUCER_URL=some-public-kafka-url
 - git push heroku master
 
 ## Verification
@@ -76,7 +86,20 @@ For the Kafka connection options:
 - setup stuff following above deployment
 - in the UI, select a topic to view topic data stream
 - use the kafka-console-producer to generate some messages as above,
-  then watch the UI, it should got some messages
+  then watch the UI, it should get some messages
 - filter the messages and see results
 - use the UI to post message to Kafka, see above for example message, the data stream table should also show the posted message
 - you may also use the above kafka-console-consumer to view the Kafka messages
+
+
+## Notes
+
+- To keep the web socket connection alive, the following approaches are used:
+  (a) the server will handle both `error` and `close` events to terminate the web socket connection,
+      so that client side will re-start a new connection
+  (b) client side will handle onerror and onclose to re-start a new connection to server
+- The get/view topic, send message operations will show loading indicator,
+  but they are too fast because local back end is used, and especially for get/view topic operations web socket is used,
+  you may hardly see the indicator
+
+

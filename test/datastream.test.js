@@ -18,6 +18,10 @@ describe('Topcoder Data Stream REST API Tests', () => {
           return done(err);
         }
         expect(res.body.length > 0).to.equal(true);
+        // ensures the topics are sorted properly
+        for (let i = 0; i + 1 < res.body.length; i += 1) {
+          expect(res.body[i] < res.body[i + 1]).to.equal(true);
+        }
         return done();
       });
   });

@@ -13,6 +13,7 @@ The following parameters can be set in config file:
 
 - API_URL: the API URL prefix
 - WS_URL: the Web Socket URL
+- DEFAULT_MESSAGE_COUNT: the default message count per topic
 
 ## Local deployment
 

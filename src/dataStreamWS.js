@@ -8,9 +8,25 @@ const logger = require('./common/logger');
 const WebSocket = require('ws');
 const WebSocketServer = WebSocket.Server;
 const helper = require('./common/helper');
+const config = require('config');
 
 // all web socket client data
 const allWS = [];
+
+// all cached messages, key is topic, value is array of messages of the topic
+const allMessages = {};
+
+// max cache message count per topic
+const maxMsgCount = Number(config.MAX_MESSAGE_COUNT);
+
+// send data to client via web socket
+const sendData = (ws, payload) => {
+  try {
+    ws.send(JSON.stringify(payload));
+  } catch (err) {
+    logger.error(err);
+  }
+};
 
 /**
  * Setup web socket.
@@ -28,18 +44,34 @@ const setup = (server) => {
     };
     allWS.push(clientData);
 
-    // got message from client
+    // got message from client, the message is string representation of JSON containing fields: topic and count,
+    // where count is the last count of messages of the topic to retrieve
     ws.on('message', (message) => {
       logger.debug(`web socket message: ${message}`);
-      if (message.startsWith('topic:') && message.length > 'topic:'.length) {
-        clientData.topic = message.substring('topic:'.length);
-      } else {
-        logger.error(`invalid web socket message: ${message}`);
+      let msgJSON;
+      try {
+        msgJSON = JSON.parse(message);
+      } catch (err) {
+        logger.err('invalid message', message, err);
+        return;
       }
+      clientData.topic = msgJSON.topic;
+      const topicMsgs = allMessages[msgJSON.topic] || [];
+      let startIndex = topicMsgs.length - msgJSON.count;
+      if (startIndex < 0) startIndex = 0;
+      const messages = topicMsgs.slice(startIndex);
+      // the 'full' flag is true, indicating the messages are full latest messages for client side,
+      // client side should clear the existing messages if any for the topic
+      sendData(ws, { full: true, topic: msgJSON.topic, messages });
     });
 
-    // close event handler
-    ws.on('close', () => {
+    // terminate web socket
+    const terminateWS = () => {
+      if (clientData.terminated) {
+        return;
+      }
+      clientData.terminated = true;
+
       for (let i = 0; i < allWS.length; i += 1) {
         if (id === allWS[i].id) {
           // remove the current client data
@@ -47,22 +79,41 @@ const setup = (server) => {
           break;
         }
       }
+      ws.close();
+    };
+
+    // close event handler
+    ws.on('close', () => {
       logger.debug('web socket closed');
+      terminateWS();
     });
+
+    // error event handler
+    ws.on('error', (err) => {
+      logger.error('there is error for the web socket', err);
+      terminateWS();
+    });
+  });
+
+  wss.on('error', (err) => {
+    logger.error('there is error for the web socket server', err);
   });
 };
 
 /**
- * Send message to all applicable web socket clients.
+ * Send message to all applicable web socket clients. The message will be cached to be retrieved by clients.
  */
 const sendMessage = (topic, message) => {
+  // cache message
+  if (!allMessages[topic]) allMessages[topic] = [];
+  allMessages[topic].push(message);
+  if (allMessages[topic].length > maxMsgCount) allMessages[topic].shift();
+
+  // send message to clients
   _.each(allWS, (clientData) => {
     if (topic === clientData.topic) {
-      try {
-        clientData.ws.send(message);
-      } catch (e) {
-        logger.error(e);
-      }
+      // the 'full' flag is false, indicating the message is to be added to client side
+      sendData(clientData.ws, { full: false, topic, messages: [message] });
     }
   });
 };
