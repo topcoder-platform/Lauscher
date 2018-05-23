@@ -7,9 +7,9 @@ const API = {
   getAllTopics: (cb) => {
     superagent.get(`${config.API_URL}/topics`).end((err, res) => {
       if (err) {
-        alert(`Failed to get topics. ${ err }`);
+        cb(`Failed to get topics. ${ err }`);
       } else {
-        cb(res.body);
+        cb(null, res.body);
       }
     });
   },
@@ -18,8 +18,8 @@ const API = {
   sendMessageToKafka: (topic, message, cb) => {
     superagent.post(`${config.API_URL}/message-to-kafka`).send({ topic, message }).end((err) => {
       if (err) {
-        alert(`Failed to send message. ${ err }`);
-      } else if (cb) {
+        cb(`Failed to send message. ${ err }`);
+      } else {
         cb();
       }
     });
