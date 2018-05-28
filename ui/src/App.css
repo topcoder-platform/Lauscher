@@ -1,27 +1,33 @@
 .app {
   width: 100%;
+  height: 100%;
+}
+
+.cols{
+  display: flex;
+  height: 100%;
 }
 
 .left-nav {
   width: 300px;
-  background-color: #444444;
-  color: #EEEEEE;
+  background-color: #2f4050;
+  color: #a7b1c2;
   font-size: 13px;
+  overflow: auto;
 }
 
 .logo {
   height: 80px;
   width: 100%;
-  padding-left: 60px;
-  padding-right: 60px;
-  padding-top: 22px;
-  padding-bottom: 22px;
-  background-color: #333333;
+  background-color: #2B3C4B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .left-nav-item {
   padding-left: 30px;
-  margin-top: 30px;
+  margin-top: 20px;
   margin-bottom: 20px;
 }
 
@@ -31,10 +37,13 @@
   margin-right: 10px;
 }
 
+.topic-select.form-control:not([size]):not([multiple]){
+  height: 32px;
+}
+
 .filter {
-  padding-left: 0px;
-  text-align: center;
-  font-style: italic;
+  padding-left: 30px;
+  margin-bottom: 10px;
 }
 
 .filter-control {
@@ -45,19 +54,47 @@
   color: #000000;
 }
 
+.timestamp-control .DayPickerInput{
+  width: 100%;
+}
+
+.timestamp-control input{
+  display: block;
+  width: 90%;
+  padding: .375rem .75rem;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: .25rem;
+  transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
 .apply-button {
   margin-left: 30px;
 }
 
 .main-content {
-  background-color: #F5F5F5;
-  padding: 20px;
+  background-color: #f3f3f4;
   width: calc(100% - 300px);
+  display: flex;
+  flex-direction: column;
 }
 
 .error-msg {
   color: red;
   margin-bottom: 30px;
+}
+
+.page-heading{
+  font-size: 24px;
+  padding-top: 20px;
+  padding-bottom: 10px;
+  padding-left: 25px;
+  font-weight: 100;
+  background-color: #fff;
 }
 
 .message-input {
@@ -72,16 +109,12 @@
 }
 
 .view-button {
-  vertical-align: top;
+  vertical-align: bottom;
 }
 
 .get-button {
-  vertical-align: top;
+  vertical-align: bottom;
   margin-left: 10px;
-}
-
-.send-message-button {
-  vertical-align: text-bottom;
 }
 
 .loading-img-container {
@@ -100,4 +133,108 @@
   top: 50%;
   left: 50%;
   z-index: 99999;
+}
+
+.btn{
+  font-size: 12px;
+}
+
+.form-control{
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.form-control:focus {
+  border-color: #ced4da;
+  box-shadow: none;
+}
+
+.page-body{
+  padding: 25px 25px 70px;
+  position: relative;
+  height: calc(100% - 66px);
+}
+
+.table{
+  background-color: #fff;
+  table-layout: fixed;
+}
+
+.table thead th{
+  border: none;
+}
+
+.table thead th:nth-child(1){
+  width: 200px;
+}
+
+.table thead th:nth-child(3){
+  width: 220px;
+}
+
+.table thead th:nth-child(4){
+  width: 200px;
+}
+
+.table td{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table td:nth-child(2){
+  cursor: pointer;
+}
+
+.table tr{
+  border-bottom: 1px solid #e7eaec;
+}
+
+.btn-primary,
+.btn-primary:not(:disabled):not(.disabled):active{
+  background-color: #f8ac59;
+  border-color: #f8ac59;
+}
+
+.btn-primary:hover{
+  background-color: #f7a54a;
+  border-color: #f7a54a;
+}
+
+.btn-primary:focus{
+  box-shadow: none;
+}
+
+.send-message-button,
+.send-message-button:not(:disabled):not(.disabled):active {
+  vertical-align: text-bottom;
+  background-color: #23c6c8;
+  border-color: #23c6c8;
+}
+
+.send-message-button:hover {
+  background-color: #21b9bb;
+  border-color: #21b9bb;
+}
+
+.selected-topic{
+  color: #676a6c;
+}
+
+.msg-input-group{
+  display: flex;
+  align-items: center;
+  position: absolute;
+  bottom: 25px;
+  left: 25px;
+  right: 20px;
+}
+
+.msg-input-group .form-control{
+  margin-top: 1px;
+}
+
+.table-wrap{
+  height: 100%;
+  overflow: auto;
 }
