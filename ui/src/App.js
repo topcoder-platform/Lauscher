@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import logo from './logo.png';
 import loadingImg from './loading.gif';
 import './App.css';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
@@ -8,6 +7,8 @@ import API from './services/API';
 import _ from 'lodash';
 import config from './config/config';
 import moment from 'moment';
+import logo from './logo.png';
+import Modal from './Modal';
 
 const defaultMsgCount = Number(config.DEFAULT_MESSAGE_COUNT);
 
@@ -56,7 +57,9 @@ class App extends Component {
     this.applyFilters = this.applyFilters.bind(this);
     this.changeExtraMsgCount = this.changeExtraMsgCount.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
+    this.handleKeyPress = this.handleKeyPress.bind(this);
     this.setupWS = this.setupWS.bind(this);
+    this.toggleMsgModal = this.toggleMsgModal.bind(this);
   }
 
   setupWS() {
@@ -104,12 +107,22 @@ class App extends Component {
 
   componentDidMount() {
     const that = this;
+    this.setState({
+      loading: true,
+    });
+
     // get topics
     API.getAllTopics((err, topics) => {
       if (err) {
-        that.setState({ errorMsg: err });
+        that.setState({
+          errorMsg: err,
+          loading: false,
+        });
       } else {
-        that.setState({ topics });
+        that.setState({
+          topics,
+          loading: false,
+        });
       }
     });
 
@@ -262,8 +275,13 @@ class App extends Component {
       this.setState({ errorMsg: 'Message can not be empty.' });
       return;
     }
+
     if (!this.state.selectedTopic) {
       this.setState({ errorMsg: 'Please select topic to view.' });
+      return;
+    }
+
+    if (this.state.loading) {
       return;
     }
 
@@ -273,14 +291,34 @@ class App extends Component {
       if (err) {
         that.setState({ loading: false, errorMsg: err });
       } else {
-        that.setState({ loading: false });
+        that.setState({ loading: false, messageToSend: '' });
       }
     });
   }
 
+  handleKeyPress(e) {
+    if (e.key === 'Enter') {
+      this.sendMessage();
+    }
+  }
+
+  toggleMsgModal(msg){
+    if(msg){
+      if(msg.payload){
+        this.setState({
+          selectedMsg: msg
+        })
+      }
+    }else{
+      this.setState({
+        selectedMsg: null
+      })
+    }
+  }
+
   render() {
     const { topics, tempOriginator, tempPayload, tempMimetype, tempStartDate, tempEndDate,
-      messageToSend, extraMsgCount, errorMsg, loading } = this.state;
+      messageToSend, extraMsgCount, errorMsg, loading, selectedTopic, selectedMsg} = this.state;
     const filteredMessages = this.filter();
 
     return (
@@ -288,9 +326,11 @@ class App extends Component {
         { loading && <div className="loading-img-container">
           <img src={loadingImg} className="loading-img" alt="Loading..." />
         </div> }
-        <div className="row">
+        <div className="cols">
           <div className="left-nav">
-            <img src={logo} className="logo" alt="logo" />
+            <div className="logo">
+              <img src={logo} alt="logo" />
+            </div>
             <div className="left-nav-item">
               Topic:<br/>
               <select className="form-control topic-select" onChange={(e) => this.setState({ tempTopic: e.target.value })}>
@@ -305,23 +345,23 @@ class App extends Component {
             <div className="left-nav-item">
               Originator:<br/>
               <input className="form-control filter-control" value={tempOriginator || ''}
-                onChange={(e) => this.setState({ tempOriginator: e.target.value })}></input>
+                onChange={(e) => this.setState({ tempOriginator: e.target.value })} />
             </div>
             <div className="left-nav-item">
               Payload:<br/>
               <input className="form-control filter-control" value={tempPayload || ''}
-                onChange={(e) => this.setState({ tempPayload: e.target.value })}></input>
+                onChange={(e) => this.setState({ tempPayload: e.target.value })} />
             </div>
             <div className="left-nav-item">
               Mime-Type:<br/>
               <input className="form-control filter-control" value={tempMimetype || ''}
-                onChange={(e) => this.setState({ tempMimetype: e.target.value })}></input>
+                onChange={(e) => this.setState({ tempMimetype: e.target.value })} />
             </div>
             <div className="left-nav-item">
               Timestamp Start:<br/>
               <div className="timestamp-control">
                 <DayPickerInput value={tempStartDate || undefined}
-                  onDayChange={(day) => this.handleDayChange('start', day)} />
+                  onDayChange={(day) => this.handleDayChange('start', day)} className="form-control"/>
               </div>
             </div>
             <div className="left-nav-item">
@@ -338,44 +378,57 @@ class App extends Component {
             <div className="left-nav-item">
               Specify Additional Offset (Offset of 20 already applied. This will get added to it.)<br/>
               <input type="number" className="form-control filter-control extra-message-count" value={extraMsgCount}
-                onChange={(e) => this.changeExtraMsgCount(Number(e.target.value))}></input>
+                onChange={(e) => this.changeExtraMsgCount(Number(e.target.value))} />
               <button className="btn btn-primary get-button" onClick={this.getTopicMessages}>Get</button>
             </div>
           </div>
           <div className="main-content">
-            { errorMsg && <div className="error-msg">
-              {errorMsg}
-            </div>}
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Topic</th>
-                  <th>Originator</th>
-                  <th>Payload</th>
-                  <th>Timestamp</th>
-                  <th>Mime-Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                { _.map(filteredMessages, (msg, ind) => (
-                <tr key={ind}>
-                  <td>{msg.topic || ''}</td>
-                  <td>{msg.originator || ''}</td>
-                  <td>{msg.payload ? JSON.stringify(msg.payload) : ''}</td>
-                  <td>{msg.timestamp || ''}</td>
-                  <td>{msg['mime-type'] || ''}</td>
-                </tr>
-                  )) }
-              </tbody>
-            </table>
-            <br/>
-            Send message in selected topic:<br/>
-            <textarea className="message-input" rows="5" value={messageToSend || ''}
-              onChange={(e) => this.setState({ messageToSend: e.target.value })}></textarea>
-            <button className="btn btn-primary send-message-button" onClick={this.sendMessage}>Send Message</button>
+            <div className="page-heading">
+              Topic{selectedTopic ? (<span>: <span className="selected-topic">{selectedTopic}</span></span>) : ''}
+            </div>
+            <div className="page-body">
+              { errorMsg && <div className="error-msg">
+                {errorMsg}
+              </div>}
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Originator</th>
+                      <th>Payload</th>
+                      <th>Timestamp</th>
+                      <th>Mime-Type</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    { _.map(filteredMessages, (msg, ind) => (
+                    <tr key={ind}>
+                      <td>{msg.originator || ''}</td>
+                      <td onClick={()=>this.toggleMsgModal(msg)}>{msg.payload ? JSON.stringify(msg.payload) : ''}</td>
+                      <td>{msg.timestamp || ''}</td>
+                      <td>{msg['mime-type'] || ''}</td>
+                    </tr>
+                      )) }
+                  </tbody>
+                </table>
+              </div>
+              <div className="msg-input-group">
+                <input
+                  className="message-input form-control"
+                  value={messageToSend || ''}
+                  placeholder="Send message in selected topic"
+                  onChange={(e) => this.setState({ messageToSend: e.target.value })}
+                  onKeyPress={this.handleKeyPress}
+                  />
+                <button className="btn btn-primary send-message-button" onClick={this.sendMessage}>Send Message</button>
+              </div>
+            </div>
           </div>
         </div>
-
+        {
+          selectedMsg&&
+          <Modal message={selectedMsg} onClose={()=>this.toggleMsgModal()}/>
+        }
       </div>
     );
   }

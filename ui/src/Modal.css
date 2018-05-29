@@ -1,0 +1,50 @@
+.modal-wrap{
+  z-index: 10;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.modal-back{
+  background-color: rgba(0, 0, 0, .15);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+
+.modal-bd{
+  position: absolute;
+  background-color: #fff;
+  max-width: 600px;
+  top: 80px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  z-index: 10;
+  border-radius: 4px;
+  padding: 40px 20px 20px;
+}
+
+.modal-bd-content{
+  max-height: 540px;
+  overflow: auto;
+  height: 100%;
+}
+
+.modal-close{
+  font-weight: 100;
+  font-size: 30px;
+  line-height: 30px;
+  position: absolute;
+  cursor: pointer;
+  top: 10px;
+  right: 10px;
+}
+
+.text-content{
+  word-break: break-all;
+}
