@@ -1,0 +1,45 @@
+{
+  "name": "Lauscher",
+  "scripts": {
+    "postdeploy": "node set-env.js && cd ui && npm install && cd .."
+  },
+  "env": {
+    "API_URL": {
+      "required": true
+    },
+    "KAFKA_CLIENT_CERT": {
+      "required": true
+    },
+    "KAFKA_CLIENT_CERT_KEY": {
+      "required": true
+    },
+    "KAFKA_URL": {
+      "required": true
+    },
+    "LOG_LEVEL": {
+      "required": true
+    },
+    "NODE_ENV": {
+      "required": true
+    },
+    "PAPERTRAIL_API_TOKEN": {
+      "required": true
+    },
+    "WS_URL": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+    "papertrail"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
