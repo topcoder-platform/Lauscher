@@ -22,9 +22,6 @@
     "NODE_ENV": {
       "required": true
     },
-    "PAPERTRAIL_API_TOKEN": {
-      "required": true
-    },
     "WS_URL": {
       "required": true
     }
