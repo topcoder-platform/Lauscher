@@ -5,25 +5,29 @@
   },
   "env": {
     "API_URL": {
-      "required": true
+      "required": true,
+      "value": "https://lauscher-dev.herokuapp.com"
     },
     "KAFKA_CLIENT_CERT": {
-      "required": true
+      "required": false
     },
     "KAFKA_CLIENT_CERT_KEY": {
-      "required": true
+      "required": false
     },
     "KAFKA_URL": {
-      "required": true
+      "required": false
     },
     "LOG_LEVEL": {
-      "required": true
+      "required": true,
+      "value": "debug"
     },
     "NODE_ENV": {
-      "required": true
+      "required": true,
+      "value": "development"
     },
     "WS_URL": {
-      "required": true
+      "required": false,
+      "value": "wss://lauscher-dev.herokuapp.com"
     }
   },
   "formation": {
