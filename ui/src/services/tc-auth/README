@@ -1,0 +1,5 @@
+This folder contains a sub set of the changes located in https://github.com/appirio-tech/accounts-app
+
+Create React script is unable to minify that module.
+
+Hence, we are extracting into this folder only what is necessary for this app to function
