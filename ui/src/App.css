@@ -31,6 +31,20 @@
   margin-bottom: 20px;
 }
 
+.logged-in-user {
+  float: right !important;
+  display: table-footer-group;
+  background-color: #fff;
+  border-bottom: 1px solid #e7eaec!important;
+  padding: 25px 45px 10px;
+}
+.logged-in-user .content{
+  float:right !important;
+}
+a, button {
+  cursor: pointer;
+}
+
 .topic-select {
   width: 65%;
   display: inline-block;

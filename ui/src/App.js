@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { getFreshToken, configureConnector, decodeToken } from 'tc-accounts';
 import loadingImg from './loading.gif';
 import './App.css';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
@@ -47,6 +49,9 @@ class App extends Component {
       errorMsg: null,
       // whether loading
       loading: false,
+      tokenV3: '',
+      isLoggedIn: false,
+      currentUser: null
     };
 
     this.handleDayChange = this.handleDayChange.bind(this);
@@ -60,6 +65,32 @@ class App extends Component {
     this.handleKeyPress = this.handleKeyPress.bind(this);
     this.setupWS = this.setupWS.bind(this);
     this.toggleMsgModal = this.toggleMsgModal.bind(this);
+    configureConnector({
+      connectorUrl: config.ACCOUNTS_APP_CONNECTOR,
+      frameId: 'tc-accounts-iframe',
+    });
+  }
+
+  authenticate(callback) {
+    return getFreshToken().then((token) => {
+      const name = decodeToken(token);
+      this.setState({
+        tokenV3: token,
+        currentUser: name,
+        isLoggedIn: true,
+      });
+      return callback();
+    }).catch(() => {
+      let url = `retUrl=${encodeURIComponent(config.APP_URL)}`;
+      url = `${config.TC_AUTH_URL}/member?${url}`;
+      location.href = url; // eslint-disable-line no-restricted-globals
+      return ({});
+    });
+  }
+
+  logout() {
+    const url = `${config.TC_AUTH_URL}/#!/logout?retUrl=${encodeURIComponent(config.APP_URL)}`
+    location.href = url; // eslint-disable-line no-restricted-globals
   }
 
   setupWS() {
@@ -106,27 +137,29 @@ class App extends Component {
   }
 
   componentDidMount() {
+
     const that = this;
     this.setState({
       loading: true,
     });
+    this.authenticate(() => {
+      // get topics
+      API.getAllTopics((err, topics) => {
+        if (err) {
+          that.setState({
+            errorMsg: err,
+            loading: false,
+          });
+        } else {
+          that.setState({
+            topics,
+            loading: false,
+          });
+        }
+      });
 
-    // get topics
-    API.getAllTopics((err, topics) => {
-      if (err) {
-        that.setState({
-          errorMsg: err,
-          loading: false,
-        });
-      } else {
-        that.setState({
-          topics,
-          loading: false,
-        });
-      }
+      that.setupWS();
     });
-
-    that.setupWS();
   }
 
   handleDayChange(type, day) {
@@ -302,14 +335,14 @@ class App extends Component {
     }
   }
 
-  toggleMsgModal(msg){
-    if(msg){
-      if(msg.payload){
+  toggleMsgModal(msg) {
+    if (msg) {
+      if (msg.payload) {
         this.setState({
           selectedMsg: msg
         })
       }
-    }else{
+    } else {
       this.setState({
         selectedMsg: null
       })
@@ -318,118 +351,141 @@ class App extends Component {
 
   render() {
     const { topics, tempOriginator, tempPayload, tempMimetype, tempStartDate, tempEndDate,
-      messageToSend, extraMsgCount, errorMsg, loading, selectedTopic, selectedMsg} = this.state;
+      messageToSend, extraMsgCount, errorMsg, loading, selectedTopic, selectedMsg } = this.state;
     const filteredMessages = this.filter();
-
+    if (!this.state.isLoggedIn) {
+      return (
+        <div className="app">
+          {loading && <div className="loading-img-container">
+            <img src={loadingImg} className="loading-img" alt="Loading..." />
+          </div>}
+          <div className="cols">
+            <div className="left-nav">
+              <div className="logo">
+                <img src={logo} alt="logo" />
+              </div>
+            </div>
+          </div>
+        </div >
+      )
+    }
     return (
-      <div className="app">
-        { loading && <div className="loading-img-container">
-          <img src={loadingImg} className="loading-img" alt="Loading..." />
-        </div> }
-        <div className="cols">
-          <div className="left-nav">
-            <div className="logo">
-              <img src={logo} alt="logo" />
-            </div>
-            <div className="left-nav-item">
-              Topic:<br/>
-              <select className="form-control topic-select" onChange={(e) => this.setState({ tempTopic: e.target.value })}>
-                <option value="">Please Select a Topic</option>
-                { _.map(topics, (tp, index) => (<option key={index}>{tp}</option>)) }
-              </select>
-              <button className="btn btn-primary view-button" onClick={this.viewTopicMessages}>View</button>
-            </div>
-            <div className="left-nav-item filter">
-              <h6>Filters</h6>
-            </div>
-            <div className="left-nav-item">
-              Originator:<br/>
-              <input className="form-control filter-control" value={tempOriginator || ''}
-                onChange={(e) => this.setState({ tempOriginator: e.target.value })} />
-            </div>
-            <div className="left-nav-item">
-              Payload:<br/>
-              <input className="form-control filter-control" value={tempPayload || ''}
-                onChange={(e) => this.setState({ tempPayload: e.target.value })} />
-            </div>
-            <div className="left-nav-item">
-              Mime-Type:<br/>
-              <input className="form-control filter-control" value={tempMimetype || ''}
-                onChange={(e) => this.setState({ tempMimetype: e.target.value })} />
-            </div>
-            <div className="left-nav-item">
-              Timestamp Start:<br/>
-              <div className="timestamp-control">
-                <DayPickerInput value={tempStartDate || undefined}
-                  onDayChange={(day) => this.handleDayChange('start', day)} className="form-control"/>
+      <Router>
+        <div className="app">
+          {loading && <div className="loading-img-container">
+            <img src={loadingImg} className="loading-img" alt="Loading..." />
+          </div>}
+          <div className="cols">
+            <div className="left-nav">
+              <div className="logo">
+                <img src={logo} alt="logo" />
+              </div>
+              <div className="left-nav-item">
+                Topic:<br />
+                <select className="form-control topic-select" onChange={(e) => this.setState({ tempTopic: e.target.value })}>
+                  <option value="">Please Select a Topic</option>
+                  {_.map(topics, (tp, index) => (<option key={index}>{tp}</option>))}
+                </select>
+                <button className="btn btn-primary view-button" onClick={this.viewTopicMessages}>View</button>
+              </div>
+              <div className="left-nav-item filter">
+                <h6>Filters</h6>
+              </div>
+              <div className="left-nav-item">
+                Originator:<br />
+                <input className="form-control filter-control" value={tempOriginator || ''}
+                  onChange={(e) => this.setState({ tempOriginator: e.target.value })} />
+              </div>
+              <div className="left-nav-item">
+                Payload:<br />
+                <input className="form-control filter-control" value={tempPayload || ''}
+                  onChange={(e) => this.setState({ tempPayload: e.target.value })} />
+              </div>
+              <div className="left-nav-item">
+                Mime-Type:<br />
+                <input className="form-control filter-control" value={tempMimetype || ''}
+                  onChange={(e) => this.setState({ tempMimetype: e.target.value })} />
+              </div>
+              <div className="left-nav-item">
+                Timestamp Start:<br />
+                <div className="timestamp-control">
+                  <DayPickerInput value={tempStartDate || undefined}
+                    onDayChange={(day) => this.handleDayChange('start', day)} className="form-control" />
+                </div>
+              </div>
+              <div className="left-nav-item">
+                Timestamp End:<br />
+                <div className="timestamp-control">
+                  <DayPickerInput value={tempEndDate || undefined}
+                    onDayChange={(day) => this.handleDayChange('end', day)} />
+                </div>
+              </div>
+              <div className="left-nav-item">
+                <button className="btn btn-primary" onClick={this.clearFilters}>Clear</button>
+                <button className="btn btn-primary apply-button" onClick={this.applyFilters}>Apply</button>
+              </div>
+              <div className="left-nav-item">
+                Specify Additional Offset (Offset of 20 already applied. This will get added to it.)<br />
+                <input type="number" className="form-control filter-control extra-message-count" value={extraMsgCount}
+                  onChange={(e) => this.changeExtraMsgCount(Number(e.target.value))} />
+                <button className="btn btn-primary get-button" onClick={this.getTopicMessages}>Get</button>
               </div>
             </div>
-            <div className="left-nav-item">
-              Timestamp End:<br/>
-              <div className="timestamp-control">
-                <DayPickerInput value={tempEndDate || undefined}
-                  onDayChange={(day) => this.handleDayChange('end', day)} />
+            <div className="main-content">
+              <div className="logged-in-user">
+                <div className="content">
+                  <p><span>Welcome, {this.state.currentUser.handle}</span></p>
+                  <a onClick={this.logout}>Logout</a>
+                </div>
               </div>
-            </div>
-            <div className="left-nav-item">
-              <button className="btn btn-primary" onClick={this.clearFilters}>Clear</button>
-              <button className="btn btn-primary apply-button" onClick={this.applyFilters}>Apply</button>
-            </div>
-            <div className="left-nav-item">
-              Specify Additional Offset (Offset of 20 already applied. This will get added to it.)<br/>
-              <input type="number" className="form-control filter-control extra-message-count" value={extraMsgCount}
-                onChange={(e) => this.changeExtraMsgCount(Number(e.target.value))} />
-              <button className="btn btn-primary get-button" onClick={this.getTopicMessages}>Get</button>
-            </div>
-          </div>
-          <div className="main-content">
-            <div className="page-heading">
-              Topic{selectedTopic ? (<span>: <span className="selected-topic">{selectedTopic}</span></span>) : ''}
-            </div>
-            <div className="page-body">
-              { errorMsg && <div className="error-msg">
-                {errorMsg}
-              </div>}
-              <div className="table-wrap">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Originator</th>
-                      <th>Payload</th>
-                      <th>Timestamp</th>
-                      <th>Mime-Type</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    { _.map(filteredMessages, (msg, ind) => (
-                    <tr key={ind}>
-                      <td>{msg.originator || ''}</td>
-                      <td onClick={()=>this.toggleMsgModal(msg)}>{msg.payload ? JSON.stringify(msg.payload) : ''}</td>
-                      <td>{msg.timestamp || ''}</td>
-                      <td>{msg['mime-type'] || ''}</td>
-                    </tr>
-                      )) }
-                  </tbody>
-                </table>
+              <div className="page-heading">
+                Topic{selectedTopic ? (<span>: <span className="selected-topic">{selectedTopic}</span></span>) : ''}
               </div>
-              <div className="msg-input-group">
-                <input
-                  className="message-input form-control"
-                  value={messageToSend || ''}
-                  placeholder="Send message in selected topic"
-                  onChange={(e) => this.setState({ messageToSend: e.target.value })}
-                  onKeyPress={this.handleKeyPress}
+              <div className="page-body">
+                {errorMsg && <div className="error-msg">
+                  {errorMsg}
+                </div>}
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Originator</th>
+                        <th>Payload</th>
+                        <th>Timestamp</th>
+                        <th>Mime-Type</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {_.map(filteredMessages, (msg, ind) => (
+                        <tr key={ind}>
+                          <td>{msg.originator || ''}</td>
+                          <td onClick={() => this.toggleMsgModal(msg)}>{msg.payload ? JSON.stringify(msg.payload) : ''}</td>
+                          <td>{msg.timestamp || ''}</td>
+                          <td>{msg['mime-type'] || ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="msg-input-group">
+                  <input
+                    className="message-input form-control"
+                    value={messageToSend || ''}
+                    placeholder="Send message in selected topic"
+                    onChange={(e) => this.setState({ messageToSend: e.target.value })}
+                    onKeyPress={this.handleKeyPress}
                   />
-                <button className="btn btn-primary send-message-button" onClick={this.sendMessage}>Send Message</button>
+                  <button className="btn btn-primary send-message-button" onClick={this.sendMessage}>Send Message</button>
+                </div>
               </div>
             </div>
           </div>
+          {
+            selectedMsg &&
+            <Modal message={selectedMsg} onClose={() => this.toggleMsgModal()} />
+          }
         </div>
-        {
-          selectedMsg&&
-          <Modal message={selectedMsg} onClose={()=>this.toggleMsgModal()}/>
-        }
-      </div>
+      </Router>
     );
   }
 }
