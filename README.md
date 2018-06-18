@@ -22,7 +22,6 @@ For the Kafka connection options:
 
 For front end config, see ui/README.md.
 
-
 ## Local Kafka setup
 
 - `http://kafka.apache.org/quickstart` contains details to setup and manage Kafka server,
