@@ -7,6 +7,7 @@
 
 
 ## Configuration
+
 Configuration for the notification server is at `config/default.js`.
 The following parameters can be set in config files or in env variables:
 
