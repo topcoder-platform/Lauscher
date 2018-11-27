@@ -111,13 +111,15 @@ class App extends Component {
     };
     ws.onmessage = (event) => {
       const msgJSON = JSON.parse(event.data);
+      let messages;
       if (msgJSON.topic !== that.state.selectedTopic) return;
       if (msgJSON.full) {
-        that.setState({ messages: msgJSON.messages, loading: false });
+        messages = msgJSON.messages.reverse();
+        that.setState({ messages, loading: false });
       } else {
-        let messages = that.state.messages.concat(msgJSON.messages);
+        messages = msgJSON.messages.concat(that.state.messages);
         const maxCount = defaultMsgCount + that.state.extraMsgCount;
-        if (messages.length > maxCount) messages = messages.slice(messages.length - maxCount);
+        if (messages.length > maxCount) messages = messages.slice(0, maxCount);
         that.setState({ messages });
       }
     };
