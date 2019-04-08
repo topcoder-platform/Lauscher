@@ -6,6 +6,8 @@
 const _ = require('lodash');
 const co = require('co');
 const uuid = require('uuid/v4');
+const config = require('config');
+const authVerifier = require('tc-core-library-js').auth.verifier;
 
 /**
  * Wrap generator function to standard express function
@@ -48,8 +50,56 @@ function generateRandomString() {
   return `${uuid()}-${new Date().getTime()}`;
 }
 
+/**
+ * Check whether user is authorized to access the app.
+ *
+ * @param {Object} user the user
+ * @returns {boolean} whether it is authorized
+ */
+function isAuthorized(user) {
+  let authorized = false;
+  const roles = user.roles || [];
+  for (let i = 0; i < roles.length && !authorized; i += 1) {
+    for (let j = 0; j < config.ROLES.length && !authorized; j += 1) {
+      if (roles[i].trim().toLowerCase() === config.ROLES[j].trim().toLowerCase()) {
+        authorized = true;
+      }
+    }
+  }
+  return authorized;
+}
+
+/**
+ * Check whether JWT token is authorized to access the app.
+ *
+ * @param {String} token the JWT token
+ * @param {Function} callback the callback function
+ */
+function isTokenAuthorized(token, callback) {
+  const secret = _.get(config, 'AUTH_SECRET') || '';
+  const validIssuers = JSON.parse(_.get(config, 'VALID_ISSUERS') || '[]');
+  const jwtKeyCacheTime = _.get(config, 'JWT_KEY_CACHE_TIME', '24h');
+  if (!secret || secret.length === 0) {
+    return callback(new Error('Auth secret not provided'));
+  }
+  if (!validIssuers || validIssuers.length === 0) {
+    return callback(new Error('JWT Issuers not configured'));
+  }
+
+  const verifier = authVerifier(validIssuers, jwtKeyCacheTime);
+  verifier.validateToken(token, secret, (err, decoded) => {
+    if (err) {
+      return callback(err);
+    }
+    const authorized = isAuthorized(decoded);
+    return callback(null, authorized);
+  });
+}
+
 module.exports = {
   wrapExpress,
   autoWrapExpress,
   generateRandomString,
+  isAuthorized,
+  isTokenAuthorized,
 };

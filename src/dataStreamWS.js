@@ -41,18 +41,33 @@ const setup = (server) => {
       id,
       topic: null,
       ws,
+      authorized: false,
     };
     allWS.push(clientData);
 
-    // got message from client, the message is string representation of JSON containing fields: topic and count,
+    // got message from client,
+    // the message is 'token:{JWT-token}' or string representation of JSON containing fields: topic and count,
     // where count is the last count of messages of the topic to retrieve
     ws.on('message', (message) => {
       logger.debug(`web socket message: ${message}`);
+      // handle token
+      if (message.startsWith('token:')) {
+        const token = message.substring('token:'.length);
+        helper.isTokenAuthorized(token, (err, isAuthorized) => {
+          if (err) {
+            logger.error('failed to authorize token', err);
+          } else if (isAuthorized) {
+            clientData.authorized = true;
+          }
+        });
+        return;
+      }
+
       let msgJSON;
       try {
         msgJSON = JSON.parse(message);
       } catch (err) {
-        logger.err('invalid message', message, err);
+        logger.error('invalid message', message, err);
         return;
       }
       clientData.topic = msgJSON.topic;
@@ -62,7 +77,9 @@ const setup = (server) => {
       const messages = topicMsgs.slice(startIndex);
       // the 'full' flag is true, indicating the messages are full latest messages for client side,
       // client side should clear the existing messages if any for the topic
-      sendData(ws, { full: true, topic: msgJSON.topic, messages });
+      if (clientData.authorized) {
+        sendData(ws, { full: true, topic: msgJSON.topic, messages });
+      }
     });
 
     // terminate web socket
@@ -111,7 +128,7 @@ const sendMessage = (topic, message) => {
 
   // send message to clients
   _.each(allWS, (clientData) => {
-    if (topic === clientData.topic) {
+    if (topic === clientData.topic && clientData.authorized) {
       // the 'full' flag is false, indicating the message is to be added to client side
       sendData(clientData.ws, { full: false, topic, messages: [message] });
     }
