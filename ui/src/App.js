@@ -383,17 +383,19 @@ class App extends Component {
               </div>
             </div>
           </div>
-        </div >
+        </div>
       )
     }
     // check authorization
     if (!this.isAuthorized(this.state.currentUser)) {
       return (
         <div className="app">
-          {loading && <div className="loading-img-container">
-            <img src={loadingImg} className="loading-img" alt="Loading..." />
-          </div>}
           <div className="cols">
+            <div className="left-nav">
+              <div className="logo">
+                <img src={logo} alt="logo" />
+              </div>
+            </div>
             <div className="main-content">
               <div className="logged-in-user">
                 <div className="content">
@@ -402,7 +404,7 @@ class App extends Component {
                 </div>
               </div>
               <div className="page-body">
-                <h3>You do not have access to use this application.</h3>                
+                <h4>You do not have access to use this application.</h4>
               </div>
             </div>
           </div>
