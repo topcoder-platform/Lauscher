@@ -10,6 +10,7 @@ const config = {
   TC_AUTH_URL: '${process.env.TC_AUTH_URL || 'https://accounts.topcoder-dev.com'}',
   ACCOUNTS_APP_CONNECTOR: '${process.env.ACCOUNTS_APP_CONNECTOR || 'https://accounts.topcoder-dev.com/connector.html'}',
   APP_URL: '${process.env.APP_URL || 'http://localhost:3000'}',
+  ROLES: ['Administrator', 'Copilot']
 };
 
 export default config;

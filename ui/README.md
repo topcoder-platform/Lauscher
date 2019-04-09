@@ -18,8 +18,10 @@ The following parameters can be set in config file:
 - TC_AUTH_URL: th url of Topcoder auth form,
 - ACCOUNTS_APP_CONNECTOR: the url to TC account connector,
 - APP_URL: URL of app
+- ROLES: allowed roles to access this app
 
-Run the application as http://local.topcoder-dev.com:3000
+
+Run the application at http://local.topcoder-dev.com:3000
 
 ## Local deployment
 

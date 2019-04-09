@@ -13,6 +13,9 @@ The following parameters can be set in config files or in env variables:
 
 - LOG_LEVEL: the log level
 - PORT: the server port
+- AUTH_SECRET: TC auth secret
+- VALID_ISSUERS: TC auth valid issuers
+- ROLES: the roles allowed to access the app
 - KAFKA_OPTIONS: Kafka consumer options, see https://www.npmjs.com/package/no-kafka for available options
 - MAX_MESSAGE_COUNT: max message count to cache per topic
 
@@ -56,7 +59,7 @@ For front end config, see ui/README.md.
 ## Front end UI setup
 
 - the front end UI's build folder content are exposed as public content by the app, so you may directly access it
-  via http://localhost:4000
+  via http://localhost:3000
 - or if you want to use it for development, then you may go to ui folder:
   run `npm install`, `npm start`, then access `http://localhost:3000`
 - note that if the front end UI's config is changed, it must be re-built using `npm run build` in the ui folder
@@ -67,7 +70,7 @@ For front end config, see ui/README.md.
 - install dependencies `npm i`
 - run code lint check `npm run lint`
 - run test `npm run test`
-- start app `npm start`, the app is running at `http://localhost:4000`
+- start app `npm start`, the app is running at `http://localhost:3000`
 
 ## Heroku Deployment
 
@@ -84,7 +87,12 @@ For front end config, see ui/README.md.
 ## Verification
 
 - setup stuff following above deployment
-- in the UI, select a topic to view topic data stream
+- login `https://accounts.topcoder-dev.com/member?retUrl=http:%2F%2Flocalhost:3000` with normal user credential `12321 / topcoder123`
+- then browse `http://localhost:3000`, you will see `You do not have access to use this application.`
+- login in above page again with copilot and admin user credential `mess / appirio123`
+- then browse `http://localhost:3000`, you need to manually browse it, the auto redirect doesn't work for this localhost URL,
+  then you can access the app now
+- in the UI, select a topic to view topic data stream, note that you must click the 'View' button
 - use the kafka-console-producer to generate some messages as above,
   then watch the UI, it should get some messages
 - filter the messages and see results
@@ -94,12 +102,20 @@ For front end config, see ui/README.md.
 
 ## Notes
 
-- To keep the web socket connection alive, the following approaches are used:
-  (a) the server will handle both `error` and `close` events to terminate the web socket connection,
-      so that client side will re-start a new connection
-  (b) client side will handle onerror and onclose to re-start a new connection to server
-- The get/view topic, send message operations will show loading indicator,
-  but they are too fast because local back end is used, and especially for get/view topic operations web socket is used,
-  you may hardly see the indicator
+- after installing libraries, update `node_modules/tc-core-library-js/lib/auth/verifier.js`, at line #23, add code:
+  `return decodedToken && decodedToken.payload ? callback(null, decodedToken.payload) : callback(new Error('invalid token'));`,
+  so that we will ignore the JWT verification, and directly use the decoded payload;
+  this is because we don't know the JWT auth secret to verify the TC auth token.
+  In production, if we properly configure AUTH_SECRET and VALID_ISSUERS, then we don't need this code change.
 
+- I tried to fix some vulnerabilities issues, but not all are fixed, because many are due to ui's old libraries,
+  and upgrading them will incur much code changes, so I don't fix them to avoid code change risks
+
+- API security is handled at `src/app.js`
+
+- web socket security is handled at `src/dataStreamWS.js`, see `authorized` related handling
+
+- tests are improved at `test/datastream.test.js`
+
+- front end is updated to send token to back end API and web socket
 

@@ -49,7 +49,6 @@ class App extends Component {
       errorMsg: null,
       // whether loading
       loading: false,
-      tokenV3: '',
       isLoggedIn: false,
       currentUser: null
     };
@@ -65,21 +64,36 @@ class App extends Component {
     this.handleKeyPress = this.handleKeyPress.bind(this);
     this.setupWS = this.setupWS.bind(this);
     this.toggleMsgModal = this.toggleMsgModal.bind(this);
+    this.isAuthorized = this.isAuthorized.bind(this);
     configureConnector({
       connectorUrl: config.ACCOUNTS_APP_CONNECTOR,
       frameId: 'tc-accounts-iframe',
     });
   }
 
+  isAuthorized(user) {
+    const roles = user.roles || [];
+    let allowed = false;
+    for (let i = 0; i < roles.length && !allowed; i += 1) {
+      for (let j = 0; j < config.ROLES.length && !allowed; j += 1) {
+        if (roles[i].trim().toLowerCase() === config.ROLES[j].trim().toLowerCase()) allowed = true;
+      }
+    }
+    return allowed;
+  }
+
   authenticate(callback) {
+    const that = this;
     return getFreshToken().then((token) => {
-      const name = decodeToken(token);
-      this.setState({
-        tokenV3: token,
-        currentUser: name,
+      that.token = token;
+      const user = decodeToken(token);
+      that.setState({
+        currentUser: user,
         isLoggedIn: true,
       });
-      return callback();
+      if (that.isAuthorized(user)) {
+        return callback();
+      }
     }).catch(() => {
       let url = `retUrl=${encodeURIComponent(config.APP_URL)}`;
       url = `${config.TC_AUTH_URL}/member?${url}`;
@@ -101,6 +115,8 @@ class App extends Component {
     that.ws = ws;
     that.wsOpened = false;
     ws.onopen = () => {
+      // send token to server
+      ws.send('token:' + that.token);
       that.wsOpened = true;
       if (that.selectedTopic) {
         // the topic was selected, but ws was not opened yet, so the message was not sent to server,
@@ -111,13 +127,15 @@ class App extends Component {
     };
     ws.onmessage = (event) => {
       const msgJSON = JSON.parse(event.data);
+      let messages;
       if (msgJSON.topic !== that.state.selectedTopic) return;
       if (msgJSON.full) {
-        that.setState({ messages: msgJSON.messages, loading: false });
+        messages = msgJSON.messages.reverse();
+        that.setState({ messages, loading: false });
       } else {
-        let messages = that.state.messages.concat(msgJSON.messages);
+        messages = msgJSON.messages.concat(that.state.messages);
         const maxCount = defaultMsgCount + that.state.extraMsgCount;
-        if (messages.length > maxCount) messages = messages.slice(messages.length - maxCount);
+        if (messages.length > maxCount) messages = messages.slice(0, maxCount);
         that.setState({ messages });
       }
     };
@@ -137,14 +155,13 @@ class App extends Component {
   }
 
   componentDidMount() {
-
     const that = this;
     this.setState({
       loading: true,
     });
     this.authenticate(() => {
       // get topics
-      API.getAllTopics((err, topics) => {
+      API.getAllTopics(that.token, (err, topics) => {
         if (err) {
           that.setState({
             errorMsg: err,
@@ -320,7 +337,7 @@ class App extends Component {
 
     this.setState({ loading: true, errorMsg: null });
     const that = this;
-    API.sendMessageToKafka(this.state.selectedTopic, this.state.messageToSend, (err) => {
+    API.sendMessageToKafka(this.token, this.state.selectedTopic, this.state.messageToSend, (err) => {
       if (err) {
         that.setState({ loading: false, errorMsg: err });
       } else {
@@ -366,9 +383,35 @@ class App extends Component {
               </div>
             </div>
           </div>
-        </div >
+        </div>
       )
     }
+    // check authorization
+    if (!this.isAuthorized(this.state.currentUser)) {
+      return (
+        <div className="app">
+          <div className="cols">
+            <div className="left-nav">
+              <div className="logo">
+                <img src={logo} alt="logo" />
+              </div>
+            </div>
+            <div className="main-content">
+              <div className="logged-in-user">
+                <div className="content">
+                  <p><span>Welcome, {this.state.currentUser.handle}</span></p>
+                  <a onClick={this.logout}>Logout</a>
+                </div>
+              </div>
+              <div className="page-body">
+                <h4>You do not have access to use this application.</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <Router>
         <div className="app">
