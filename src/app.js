@@ -12,8 +12,10 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const helper = require('./common/helper');
 const logger = require('./common/logger');
+const errors = require('./common/errors');
 const dataStreamWS = require('./dataStreamWS');
 const http = require('http');
+const authenticator = require('tc-core-library-js').middleware.jwtAuthenticator;
 
 const app = express();
 app.set('port', config.PORT);
@@ -39,6 +41,21 @@ _.each(require('./routes'), (verbs, url) => {
       req.signature = `${def.controller}#${def.method}`;
       next();
     });
+
+    // TC authentication and authorization
+    actions.push((req, res, next) => {
+      authenticator(_.pick(config, ['AUTH_SECRET', 'VALID_ISSUERS']))(req, res, next);
+    });
+    actions.push((req, res, next) => {
+      if (!req.authUser) {
+        return next(new errors.UnauthorizedError('Action is not allowed for anonymous'));
+      }
+      if (!helper.isAuthorized(req.authUser)) {
+        return next(new errors.ForbiddenError('You are not allowed to perform this action!'));
+      }
+      return next();
+    });
+
     actions.push(method);
     apiRouter[verb](url, helper.autoWrapExpress(actions));
   });
