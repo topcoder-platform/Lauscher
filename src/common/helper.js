@@ -57,16 +57,15 @@ function generateRandomString() {
  * @returns {boolean} whether it is authorized
  */
 function isAuthorized(user) {
-  let authorized = false;
   const roles = user.roles || [];
-  for (let i = 0; i < roles.length && !authorized; i += 1) {
-    for (let j = 0; j < config.ROLES.length && !authorized; j += 1) {
+  for (let i = 0; i < roles.length; i += 1) {
+    for (let j = 0; j < config.ROLES.length; j += 1) {
       if (roles[i].trim().toLowerCase() === config.ROLES[j].trim().toLowerCase()) {
-        authorized = true;
+        return true;
       }
     }
   }
-  return authorized;
+  return false;
 }
 
 /**
@@ -79,7 +78,7 @@ function isTokenAuthorized(token, callback) {
   const secret = _.get(config, 'AUTH_SECRET') || '';
   const validIssuers = JSON.parse(_.get(config, 'VALID_ISSUERS') || '[]');
   const jwtKeyCacheTime = _.get(config, 'JWT_KEY_CACHE_TIME', '24h');
-  if (!secret || secret.length === 0) {
+  if (!secret) {
     return callback(new Error('Auth secret not provided'));
   }
   if (!validIssuers || validIssuers.length === 0) {

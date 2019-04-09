@@ -48,7 +48,7 @@ _.each(require('./routes'), (verbs, url) => {
     });
     actions.push((req, res, next) => {
       if (!req.authUser) {
-        return next(new errors.UnauthorizedError('Action is not allowed for invalid token'));
+        return next(new errors.UnauthorizedError('Action is not allowed for anonymous'));
       }
       if (!helper.isAuthorized(req.authUser)) {
         return next(new errors.ForbiddenError('You are not allowed to perform this action!'));
