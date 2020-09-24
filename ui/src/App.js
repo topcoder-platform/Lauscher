@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { getFreshToken, configureConnector, decodeToken } from '@topcoder-platform/tc-auth-lib';
+import { getFreshToken, configureConnector, decodeToken } from 'tc-auth-lib';
 import loadingImg from './loading.gif';
 import './App.css';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
