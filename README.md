@@ -116,5 +116,5 @@ For front end config, see ui/README.md.
 
 - tests are improved at `test/datastream.test.js`
 
-- front end is updated to send token to back end API and web socket
+- front end is updated to send token to back end API and web socket 
 
