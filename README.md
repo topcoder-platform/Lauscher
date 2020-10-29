@@ -1,4 +1,4 @@
-# Topcoder Data Stream User Interface
+# Topcoder Data Stream User Interface 
 
 ## Dependencies
 
