@@ -57,7 +57,7 @@ function generateRandomString() {
  * @returns {boolean} whether it is authorized
  */
 function isAuthorized(user) {
-  const roles = user.roles || [];
+  const roles = _.find(user, (value, key) => (key.indexOf('roles') !== -1));
   for (let i = 0; i < roles.length; i += 1) {
     for (let j = 0; j < config.ROLES.length; j += 1) {
       if (roles[i].trim().toLowerCase() === config.ROLES[j].trim().toLowerCase()) {
