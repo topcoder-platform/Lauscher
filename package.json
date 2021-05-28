@@ -34,7 +34,7 @@
     "tc-core-library-js": "appirio-tech/tc-core-library-js.git#v2.6.1",
     "uuid": "^3.2.1",
     "winston": "^2.2.0",
-    "ws": "^5.1.1"
+    "ws": "^7.4.6"
   },
   "engines": {
     "node": "8.x",
