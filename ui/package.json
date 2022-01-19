@@ -5,9 +5,9 @@
   "dependencies": {
     "lodash": "^4.17.11",
     "moment": "^2.22.1",
-    "react": "^16.3.2",
+    "react": "^16.5.0",
     "react-day-picker": "^7.1.6",
-    "react-dom": "^16.3.2",
+    "react-dom": "^16.5.0",
     "react-router-dom": "^4.3.1",
     "react-scripts": "3.4.3",
     "superagent": "^3.8.3",
