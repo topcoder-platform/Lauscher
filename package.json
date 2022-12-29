@@ -24,7 +24,7 @@
     "bluebird": "^3.5.1",
     "body-parser": "^1.15.2",
     "co": "^4.6.0",
-    "config": "^1.21.0",
+    "config": "^3.3.8",
     "cors": "^2.7.1",
     "express": "^4.14.0",
     "get-parameter-names": "^0.3.0",
